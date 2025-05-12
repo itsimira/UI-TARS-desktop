@@ -13,39 +13,29 @@ import {
 } from '@renderer/components/ui/sidebar';
 import { DragArea } from '@renderer/components/Common/drag';
 import { Button } from '@renderer/components/ui/button';
-import { useSession } from '@renderer//hooks/useSession';
 
 // import { NavMain } from './nav-main';
 import { NavHistory } from './nav-history';
-import { NavSettings } from './nav-footer';
 import { UITarsHeader } from './nav-header';
-
-import { api } from '@renderer/api';
+import { NavSettings } from '@renderer/components/SideBar/nav-footer';
+import { useTask } from '@renderer/hooks/useTask';
+import { Task } from '@ui-tars/shared/types';
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-  const {
-    currentSessionId,
-    sessions,
-    setCurrentSessionId,
-    deleteSession,
-    setActiveSession,
-  } = useSession();
-
-  const onSettingsClick = useCallback(async () => {
-    await api.openSettingsWindow();
-  }, []);
+  const { currentTask, tasks, setCurrentTask } = useTask();
 
   const onNewChat = useCallback(async () => {
-    await setCurrentSessionId('');
+    setCurrentTask(null);
   }, []);
 
-  const onSessionDelete = useCallback(async (sessionId: string) => {
-    await deleteSession(sessionId);
+  const onTaskDelete = useCallback(async (taskId: number) => {
+    window.api.task.remove(taskId).then(() => {
+      setCurrentTask(null);
+    });
   }, []);
 
-  const onSessionClick = useCallback(async (sessionId: string) => {
-    // console.log('onSessionClick', sessionId);
-    await setActiveSession(sessionId);
+  const onTaskClick = useCallback(async (task: Task) => {
+    setCurrentTask(task);
   }, []);
 
   return (
@@ -60,20 +50,21 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         >
           <Plus />
           <span className="group-data-[state=collapsed]:hidden transition-opacity duration-200 ease-in-out group-data-[state=expanded]:opacity-100">
-            New Chat
+            New Task
           </span>
         </Button>
       </SidebarHeader>
       <SidebarContent>
         <NavHistory
-          currentSessionId={currentSessionId}
-          history={sessions}
-          onSessionClick={onSessionClick}
-          onSessionDelete={onSessionDelete}
+          currentTask={currentTask}
+          history={tasks}
+          onTaskClick={onTaskClick}
+          onTaskDelete={onTaskDelete}
         />
       </SidebarContent>
-      <SidebarFooter className="p-0">
-        <NavSettings onSettingsClick={onSettingsClick} />
+
+      <SidebarFooter>
+        <NavSettings />
       </SidebarFooter>
     </Sidebar>
   );

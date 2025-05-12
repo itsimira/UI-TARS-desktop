@@ -22,23 +22,26 @@ import { logger } from '@main/logger';
 import {
   LauncherWindow,
   createMainWindow,
-  createSettingsWindow,
-} from '@main/window/index';
+  createLoginWindow,
+  initializeAuthFlow,
+  logoutUser,
+  isUserAuthenticated,
+  setupLoginSuccessHandler,
+} from '@main/window';
 import { registerIpcMain } from '@ui-tars/electron-ipc/main';
 import { ipcRoutes } from './ipcRoutes';
 
-import { UTIOService } from './services/utio';
 import { store } from './store/create';
 import { SettingStore } from './store/setting';
 import { createTray } from './tray';
 import { registerSettingsHandlers } from './services/settings';
 import { sanitizeState } from './utils/sanitizeState';
 import { windowManager } from './services/windowManager';
-import { checkBrowserAvailability } from './services/browserCheck';
+import { registerAuthIPC } from '@main/services/auth';
+import { registerTaskIPC } from '@main/services/tasks/task.ipc';
 
 const { isProd } = env;
 
-// 在应用初始化之前启用辅助功能支持
 app.commandLine.appendSwitch('force-renderer-accessibility');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -87,18 +90,16 @@ const initializeApp = async () => {
     logger.info('ensureScreenCapturePermission', ensureScreenCapturePermission);
   }
 
-  await checkBrowserAvailability();
-
-  // if (env.isDev) {
-  await loadDevDebugTools();
-  // }
+  if (env.isDev) {
+    await loadDevDebugTools();
+  }
 
   logger.info('createTray');
   // Tray
   await createTray();
 
   // Send app launched event
-  await UTIOService.getInstance().appLaunched();
+  // await UTIOService.getInstance().appLaunched();
 
   const launcherWindowIns = LauncherWindow.getInstance();
 
@@ -106,9 +107,7 @@ const initializeApp = async () => {
     launcherWindowIns.show();
   });
 
-  logger.info('createMainWindow');
-  let mainWindow = createMainWindow();
-  const settingsWindow = createSettingsWindow({ showInBackground: true });
+  const activeWindow = await initializeAuthFlow();
 
   session.defaultSession.setDisplayMediaRequestHandler(
     (_request, callback) => {
@@ -126,11 +125,16 @@ const initializeApp = async () => {
 
   logger.info('mainZustandBridge');
 
-  const { unsubscribe } = registerIPCHandlers([
-    mainWindow,
-    settingsWindow,
+  const windowsToRegister = [
+    activeWindow,
     ...(launcherWindowIns.getWindow() ? [launcherWindowIns.getWindow()!] : []),
-  ]);
+  ];
+
+  const { unsubscribe } = registerIPCHandlers(windowsToRegister);
+
+  ipcMain.handle('auth:logout', () => {
+    logoutUser();
+  });
 
   app.on('window-all-closed', () => {
     logger.info('window-all-closed');
@@ -150,16 +154,50 @@ const initializeApp = async () => {
     unsubscribe();
   });
 
-  app.on('activate', () => {
+  app.on('activate', async () => {
     logger.info('app activate');
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      mainWindow = createMainWindow();
-    } else {
-      if (!mainWindow.isVisible()) {
-        mainWindow.show();
+
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    // We can simply call our existing window functions which handle
+    // the logic of checking if windows exist internally
+
+    // Get all browser windows
+    const allWindows = BrowserWindow.getAllWindows();
+
+    // If we have any window, find the appropriate one to focus
+    if (allWindows.length > 0) {
+      // Try to find a visible window
+      const visibleWindow = allWindows.find((win) => win.isVisible());
+      if (visibleWindow) {
+        visibleWindow.focus();
+        return;
       }
-      mainWindow.focus();
+
+      // If no visible window, show the first one
+      allWindows[0].show();
+      allWindows[0].focus();
+      return;
     }
+
+    // If no windows exist, we need to check auth and create appropriate window
+    isUserAuthenticated()
+      .then((isAuthenticated) => {
+        if (isAuthenticated) {
+          // User is authenticated, create main window
+          createMainWindow();
+        } else {
+          // User is not authenticated, create login window
+          createLoginWindow();
+          // Set up login success handler
+          setupLoginSuccessHandler();
+        }
+      })
+      .catch((error) => {
+        logger.error('Error checking authentication on activate:', error);
+        // Fall back to login window on error
+        createLoginWindow();
+      });
   });
 
   logger.info('initializeApp end');
@@ -189,7 +227,6 @@ const registerIPCHandlers = (
     return sanitizeState(state);
   });
 
-  // 初始化时注册已有窗口
   wrappers.forEach((wrapper) => {
     if (wrapper instanceof BrowserWindow) {
       windowManager.registerWindow(wrapper);
@@ -206,11 +243,8 @@ const registerIPCHandlers = (
     ipcMain.emit('subscribe', state),
   );
 
-  // TODO: move to ipc routes
-  ipcMain.handle('utio:shareReport', async (_, params) => {
-    await UTIOService.getInstance().shareReport(params);
-  });
-
+  registerAuthIPC();
+  registerTaskIPC();
   registerSettingsHandlers();
   // register ipc services routes
   registerIpcMain(ipcRoutes);
@@ -233,7 +267,7 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(async () => {
-    electronApp.setAppUserModelId('com.electron');
+    electronApp.setAppUserModelId('com.awesomic.pretendic');
 
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
@@ -247,4 +281,6 @@ app
     logger.info('app.whenReady end');
   })
 
-  .catch(console.log);
+  .catch((error) => {
+    console.log(error);
+  });

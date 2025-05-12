@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { initIpc } from '@ui-tars/electron-ipc/main';
 import * as env from '@main/env';
 import { store } from '@main/store/create';

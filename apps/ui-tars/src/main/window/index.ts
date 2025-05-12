@@ -1,8 +1,4 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 
 import { logger } from '@main/logger';
 import * as env from '@main/env';
@@ -11,6 +7,65 @@ import { createWindow } from './createWindow';
 
 let mainWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
+let loginWindow: BrowserWindow | null = null;
+
+export async function isUserAuthenticated(): Promise<boolean> {
+  return false;
+}
+
+/**
+ * Handle authentication flow on app start
+ */
+export async function initializeAuthFlow(): Promise<BrowserWindow> {
+  // Check if user is authenticated
+  const isAuthenticated = false;
+
+  if (isAuthenticated) {
+    logger.info('User authenticated, creating main window');
+    return createMainWindow();
+  } else {
+    logger.info('User not authenticated, creating login window');
+    const login = createLoginWindow();
+
+    // Listen for successful login
+    setupLoginSuccessHandler();
+
+    return login;
+  }
+}
+
+/**
+ * Set up handler for login success event
+ */
+export function setupLoginSuccessHandler() {
+  // Remove existing handlers if any
+  ipcMain.removeAllListeners('login:success');
+
+  // Setup new handler
+  ipcMain.once('login:success', (_, userData) => {
+    logger.info('Login successful, creating main window');
+
+    // Close login window
+    if (loginWindow && !loginWindow.isDestroyed()) {
+      loginWindow.close();
+    }
+
+    // Create main window if it doesn't exist
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      createMainWindow();
+    } else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+
+    // Send user data to the main window if needed
+    if (mainWindow) {
+      mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow?.webContents.send('user:data', userData);
+      });
+    }
+  });
+}
 
 export function showInactive() {
   if (mainWindow) {
@@ -25,7 +80,45 @@ export function show() {
   }
 }
 
+export function createLoginWindow() {
+  // If login window already exists, just show it
+  if (loginWindow && !loginWindow.isDestroyed()) {
+    loginWindow.show();
+    loginWindow.focus();
+    return loginWindow;
+  }
+
+  loginWindow = createWindow({
+    routerPath: '#login',
+    width: 1200,
+    height: 700,
+    resizable: false,
+    movable: true,
+    alwaysOnTop: false,
+    backgroundColor: '#ffffff',
+  });
+
+  loginWindow.on('close', (event) => {
+    logger.info('loginWindow closed');
+    if (env.isMacOS) {
+      event.preventDefault();
+      loginWindow?.hide();
+    } else {
+      loginWindow = null;
+    }
+  });
+
+  return loginWindow;
+}
+
 export function createMainWindow() {
+  // If main window already exists, just show it
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show();
+    mainWindow.focus();
+    return mainWindow;
+  }
+
   mainWindow = createWindow({
     routerPath: '/',
     width: 1200,
@@ -66,7 +159,6 @@ export function createSettingsWindow(
 
   let x, y;
   if (mainWindowBounds) {
-    // 计算设置窗口的位置，使其相对于主窗口居中
     x = Math.round(mainWindowBounds.x + (mainWindowBounds.width - width) / 2);
     y = Math.round(mainWindowBounds.y + (mainWindowBounds.height - height) / 2);
   }
@@ -150,6 +242,29 @@ export async function hideWindowBlock<T>(
     }
     mainWindow?.setFocusable(true);
     mainWindow?.show();
+  }
+}
+
+export function logoutUser() {
+  // Clear auth data from store - implement according to your auth strategy
+  try {
+    // Example: update your auth store
+    // store.setState({ auth: { token: null, user: null } });
+
+    // Close main window
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.hide();
+    }
+
+    // Show login window
+    createLoginWindow();
+
+    // Set up login success handler
+    setupLoginSuccessHandler();
+
+    logger.info('User logged out, showing login window');
+  } catch (error) {
+    logger.error('Error during logout:', error);
   }
 }
 

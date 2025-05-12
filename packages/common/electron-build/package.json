@@ -46,6 +46,7 @@
     "tsx": "^4.19.2",
     "@rslib/core": "^0.5.4",
     "typescript": "^5.7.2",
-    "vitest": "^3.0.2"
+    "vitest": "^3.0.2",
+    "@types/js-yaml": "^4.0.9"
   }
 }

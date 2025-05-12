@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import os from 'node:os';
 
 import dotenv from 'dotenv';
@@ -21,6 +17,10 @@ export const vlmProvider = process.env.VLM_PROVIDER;
 export const vlmBaseUrl = process.env.VLM_BASE_URL;
 export const vlmApiKey = process.env.VLM_API_KEY;
 export const vlmModelName = process.env.VLM_MODEL_NAME;
+
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+export const apiEndpoint = process.env.API_ENDPOINT || 'https://localhost:3000';
 
 const { platform } = process;
 export const isMacOS = platform === 'darwin';

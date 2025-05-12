@@ -35,15 +35,25 @@ export interface Conversation extends Message {
 export interface ComputerUseUserData extends GUIAgentData {}
 
 export interface GUIAgentData {
-  version: ShareVersion;
   /** Share operation instructions */
   instruction: string;
-  systemPrompt: string;
-  modelName: string;
   mode?: VlmModeEnum;
   logTime: number;
   status: StatusEnum;
   errMsg?: string;
   error?: GUIAgentError;
   conversations: Conversation[];
+}
+
+export interface PyExecutableOutput {
+  type: string;
+  task_index: number | null;
+  total_tasks: number | null;
+  message: string | null;
+  agent_id: string;
+  last_token_count: number;
+  token_used: number | null;
+  store_variables: {
+    store: Record<string, string>;
+  } | null;
 }

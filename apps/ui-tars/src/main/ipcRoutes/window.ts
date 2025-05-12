@@ -8,7 +8,7 @@ import {
   closeSettingsWindow,
   createSettingsWindow,
   showWindow,
-} from '@main/window/index';
+} from '@main/window';
 
 const t = initIpc.create();
 

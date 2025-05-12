@@ -54,7 +54,6 @@ export class SessionManager {
     return items.map(([_, value]) => value as SessionItem);
   }
 
-  // 更新会话
   async updateSession(
     id: string,
     updates: Partial<Pick<SessionItem, 'name' | 'meta'>>,

@@ -159,7 +159,7 @@ class ScreenMarker {
       resizable: false,
       type: 'toolbar',
       visualEffectState: 'active', // macOS only
-      backgroundColor: '#00000000', // 透明背景
+      backgroundColor: '#00000000',
       webPreferences: {
         preload: path.join(__dirname, '../preload/index.js'),
         sandbox: false,
@@ -194,7 +194,6 @@ class ScreenMarker {
 
     windowManager.registerWindow(this.widgetWindow);
 
-    // 监听来自渲染进程的点击事件
     ipcMain.once('pause-button-clicked', async () => {
       await server.stopRun();
     });
@@ -251,15 +250,6 @@ class ScreenMarker {
           this.currentOverlay.setAlwaysOnTop(true, 'screen-saver');
         }
 
-        // 在 Windows 上设置窗口为工具窗口
-        // if (process.platform === 'win32') {
-        //   this.currentOverlay.setWindowButtonVisibility(false);
-        //   const { SetWindowAttributes } = await import('windows-native-registry');
-        //   SetWindowAttributes(this.currentOverlay.getNativeWindowHandle(), {
-        //     toolWindow: true,
-        //   });
-        // }
-
         if (overlay.xPos && overlay.yPos) {
           this.lastShowPredictionMarkerPos = {
             xPos: overlay.xPos,
@@ -282,7 +272,7 @@ class ScreenMarker {
           }, 5000);
         }
       } catch (error) {
-        logger.error('[showPredictionMarker] 显示预测标记失败:', error);
+        logger.error('[showPredictionMarker]:', error);
       }
     }
   }

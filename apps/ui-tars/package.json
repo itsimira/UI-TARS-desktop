@@ -1,11 +1,11 @@
 {
-  "name": "ui-tars-desktop",
+  "name": "pretendic-desktop",
   "version": "0.1.0",
   "private": true,
   "main": "./dist/main/main.js",
   "packageManager": "pnpm@9.10.0",
-  "description": "A GUI Agent application based on UI-TARS(Vision-Lanuage Model) that allows you to control your computer using natural language.",
-  "author": "ByteDance",
+  "description": "Pretendic ",
+  "author": "Awesomic",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@computer-use/node-mac-permissions": "2.2.2",
+    "keytar": "^7.9.0",
     "sharp": "0.33.3"
   },
   "devDependencies": {
@@ -89,6 +90,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "@electron/asar": "^3.2.18",
     "@electron/fuses": "^1.8.0",
+    "@tailwindcss/vite": "4.1.3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.1",
     "@types/node": "^20.14.8",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
@@ -96,14 +98,14 @@
     "@ui-tars/action-parser": "workspace:*",
     "@ui-tars/electron-ipc": "workspace:*",
     "@ui-tars/operator-nut-js": "workspace:*",
-    "@ui-tars/operator-browser": "workspace:*",
     "@ui-tars/sdk": "workspace:*",
     "@ui-tars/shared": "workspace:*",
     "@ui-tars/utio": "workspace:*",
+    "@pretendic/api": "workspace:*",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-istanbul": "^3.0.3",
     "cross-env": "^7.0.3",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "electron": "34.1.1",
     "electron-debug": "^3.2.0",
     "electron-devtools-installer": "^3.2.0",
@@ -120,6 +122,7 @@
     "prettier": "^3.3.2",
     "rimraf": "^6.0.1",
     "sass-embedded": "^1.83.1",
+    "tailwindcss": "4.1.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
@@ -127,9 +130,8 @@
     "vite": "^6.1.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.8",
-    "zustand": "^5.0.0",
-    "@tailwindcss/vite": "4.1.3",
-    "tailwindcss": "4.1.3"
+    "zod": "^3.24.4",
+    "zustand": "^5.0.0"
   },
   "engines": {
     "node": ">=20.x"

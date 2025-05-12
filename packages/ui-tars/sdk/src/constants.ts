@@ -67,8 +67,6 @@ call_user() # Submit the task and call the user when the task is unsolvable, or 
 
 export const DEFAULT_CONTEXT = {
   logger: console,
-  factors: DEFAULT_FACTORS,
-  systemPrompt: SYSTEM_PROMPT,
 } satisfies Partial<AgentContext>;
 
 export enum INTERNAL_ACTION_SPACES_ENUM {

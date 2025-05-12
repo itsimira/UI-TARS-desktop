@@ -6,14 +6,12 @@ import RunMessages from '@renderer/components/RunMessages';
 
 import { AppSidebar } from '@/renderer/src/components/SideBar/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@renderer/components/ui/sidebar';
-import { DragArea } from '@renderer/components/Common/drag';
 
 export default function Page() {
   return (
     <SidebarProvider className="flex h-screen w-full bg-white">
       <AppSidebar />
-      <SidebarInset className="flex-1">
-        <DragArea />
+      <SidebarInset className="flex-1 py-4">
         <RunMessages />
       </SidebarInset>
     </SidebarProvider>

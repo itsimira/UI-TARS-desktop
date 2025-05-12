@@ -1,34 +1,33 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-import { Settings } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
+import { Button } from '@renderer/components/ui/button';
+import { useUserStore } from '@renderer/store/user';
+import { useNavigate } from 'react-router';
 
-import {
-  SidebarGroup,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@renderer/components/ui/sidebar';
+export function NavSettings() {
+  const { user, logout } = useUserStore();
+  const navigate = useNavigate();
 
-interface NavSettingsProps {
-  onSettingsClick: () => void;
-}
+  const handleLogout = () => {
+    logout().then(() => {
+      navigate('/login');
+    });
+  };
 
-export function NavSettings({ onSettingsClick }: NavSettingsProps) {
   return (
-    <SidebarGroup>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            className="h-12 font-medium"
-            onClick={onSettingsClick}
-          >
-            <Settings strokeWidth={2} />
-            <span>Settings</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarGroup>
+    <div className="flex items-center gap-2 rounded-md border">
+      <div className="flex items-center text-sm font-medium shrink grow px-3">
+        <User className="h-4 mr-2" strokeWidth={2} />
+        <span>{user?.email}</span>
+      </div>
+
+      <Button
+        onClick={handleLogout}
+        size="icon"
+        variant="ghost"
+        className="font-medium"
+      >
+        <LogOut strokeWidth={2} />
+      </Button>
+    </div>
   );
 }

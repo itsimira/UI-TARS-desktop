@@ -9,9 +9,6 @@ export const WelcomePage = () => {
     <div className="h-2/5 flex items-end">
       <div className="w-full text-center flex flex-col items-center pb-8">
         <img src={logo} alt="logo" className="h-20" />
-        <h1 className="text-2xl font-semibold mt-1">
-          Welcome to UI-TARS Desktop
-        </h1>
       </div>
     </div>
   );

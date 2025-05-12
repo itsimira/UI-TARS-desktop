@@ -5,11 +5,11 @@
 import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
 // import { preloadZustandBridge } from 'zutron/preload';
 
-import type { UTIOPayload } from '@ui-tars/utio';
-
 import type { AppState, LocalStore } from '@main/store/types';
+import { LoginData, SignUpData } from '@main/services/api/dto';
+import { Task } from '@ui-tars/shared/types';
 
-export type Channels = '';
+export type Channels = 'auth:changed';
 
 const electronHandler = {
   ipcRenderer: {
@@ -31,10 +31,6 @@ const electronHandler = {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },
-  utio: {
-    shareReport: (params: UTIOPayload<'shareReport'>) =>
-      ipcRenderer.invoke('utio:shareReport', params),
-  },
   setting: {
     getSetting: () => ipcRenderer.invoke('setting:get'),
     clearSetting: () => ipcRenderer.invoke('setting:clear'),
@@ -53,6 +49,27 @@ const electronHandler = {
   },
 };
 
+const apiHandler = {
+  auth: {
+    login: (loginData: LoginData) => ipcRenderer.invoke('login', loginData),
+    signup: (signupData: SignUpData) =>
+      ipcRenderer.invoke('signup', signupData),
+    logout: () => ipcRenderer.invoke('logout'),
+    validate: () => ipcRenderer.invoke('validate'),
+    storeToken: (token: string) => ipcRenderer.invoke('store-token', token),
+    loadToken: () => ipcRenderer.invoke('load-token'),
+    clearToken: () => ipcRenderer.invoke('clear-token'),
+  },
+  task: {
+    list: () => ipcRenderer.invoke('task:list'),
+    add: (prompt: string) => ipcRenderer.invoke('task:add', prompt),
+    remove: (taskId: number) => ipcRenderer.invoke('task:remove', taskId),
+    update: (task: Task) => ipcRenderer.invoke('task:update', task),
+    getResponses: (taskId: number) =>
+      ipcRenderer.invoke('task:responses', taskId),
+  },
+};
+
 // Initialize zustand bridge
 const zustandBridge = {
   getState: () => ipcRenderer.invoke('getState'),
@@ -66,7 +83,10 @@ const zustandBridge = {
 
 // Expose both electron and zutron handlers
 contextBridge.exposeInMainWorld('electron', electronHandler);
+contextBridge.exposeInMainWorld('api', apiHandler);
 contextBridge.exposeInMainWorld('zustandBridge', zustandBridge);
 contextBridge.exposeInMainWorld('platform', process.platform);
 
 export type ElectronHandler = typeof electronHandler;
+
+export type ApiHandler = typeof apiHandler;

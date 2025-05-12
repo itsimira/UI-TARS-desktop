@@ -2,10 +2,9 @@
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
-import { AlertCircle, Camera, Loader2 } from 'lucide-react';
-import { Button } from '@renderer/components/ui/button';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { GUIAgentError, ErrorStatusEnum } from '@ui-tars/shared/types';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSetting } from '../../hooks/useSetting';
 
 export const HumanTextMessage = ({ text }: { text: string }) => {
@@ -16,16 +15,25 @@ export const HumanTextMessage = ({ text }: { text: string }) => {
   );
 };
 
-interface ScreenshotMessageProps {
-  onClick?: () => void;
-}
+export const AssistantTextMessage = ({ text }: { text: string }) => {
+  const formattedText = useCallback(() => {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\\n/g, '<br/>')
+      .replace(/\r?\n/g, '<br/>');
+  }, [text]);
 
-export const ScreenshotMessage = ({ onClick }: ScreenshotMessageProps) => {
   return (
-    <Button variant="outline" className="rounded-full" onClick={onClick}>
-      <Camera className="w-4 h-4" />
-      <span>Screenshot</span>
-    </Button>
+    <div className="flex w-full gap-2 mb-4 mt-8 items-center">
+      <div
+        className="p-3 rounded-md bg-primary text-accent"
+        dangerouslySetInnerHTML={{
+          __html: formattedText(),
+        }}
+      />
+    </div>
   );
 };
 

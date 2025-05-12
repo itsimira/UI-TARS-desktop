@@ -12,21 +12,21 @@
         "**/out/**"
       ]
     },
-    "ui-tars-desktop#build": {
+    "pretendic-desktop#build": {
       "outputs": [
-        "apps/ui-tars-desktop/dist/**",
-        "apps/ui-tars-desktop/out/**"
+        "apps/pretendic-desktop/dist/**",
+        "apps/pretendic-desktop/out/**"
       ]
     },
-    "ui-tars-desktop#build:e2e": {
+    "pretendic-desktop#build:e2e": {
       "outputs": [
-        "apps/ui-tars-desktop/out/**",
-        "apps/ui-tars-desktop/dist/**"
+        "apps/pretendic-desktop/out/**",
+        "apps/pretendic-desktop/dist/**"
       ]
     },
-    "ui-tars-desktop#test:e2e": {
+    "pretendic-desktop#test:e2e": {
       "dependsOn": [
-        "ui-tars-desktop#build:e2e"
+        "pretendic-desktop#build:e2e"
       ]
     },
     "agent-tars-app#build:e2e": {

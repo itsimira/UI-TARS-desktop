@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { useState } from 'react';
 import { MoreHorizontal, Trash2, History, ChevronRight } from 'lucide-react';
 
@@ -36,24 +32,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@renderer/components/ui/alert-dialog';
-import { SessionItem } from '@renderer/db/session';
-import { ShareOptions } from './share';
+import { Task } from '@ui-tars/shared/types';
 
 export function NavHistory({
-  currentSessionId,
+  currentTask,
   history,
-  onSessionClick,
-  onSessionDelete,
+  onTaskClick,
+  onTaskDelete,
 }: {
-  currentSessionId: string;
-  history: SessionItem[];
-  onSessionClick: (id: string) => void;
-  onSessionDelete: (id: string) => void;
+  currentTask: Task | null;
+  history: Task[];
+  onTaskClick: (task: Task) => void;
+  onTaskDelete: (id: number) => void;
 }) {
   const [isShareConfirmOpen, setIsShareConfirmOpen] = useState(false);
-  const [id, setId] = useState('');
+  const [id, setId] = useState<number | null>(null);
 
-  const handleDelte = (id: string) => {
+  const handleDelete = (id: number) => {
     setIsShareConfirmOpen(true);
     setId(id);
   };
@@ -84,10 +79,10 @@ export function NavHistory({
                   {history.map((item) => (
                     <SidebarMenuSubItem key={item.id} className="group/item">
                       <SidebarMenuSubButton
-                        className={`hover:bg-neutral-100 hover:text-neutral-600 py-5 cursor-pointer ${item.id === currentSessionId ? 'text-neutral-700 bg-white hover:bg-white' : 'text-neutral-500'}`}
-                        onClick={() => onSessionClick(item.id)}
+                        className={`hover:bg-neutral-100 hover:text-neutral-600 py-5 cursor-pointer ${item.id === currentTask?.id ? 'text-neutral-700 bg-white hover:bg-white' : 'text-neutral-500'}`}
+                        onClick={() => onTaskClick(item)}
                       >
-                        <span className="max-w-42">{item.name}</span>
+                        <span className="max-w-42">{item.prompt}</span>
                       </SidebarMenuSubButton>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -101,10 +96,9 @@ export function NavHistory({
                           side={'right'}
                           align={'start'}
                         >
-                          <ShareOptions sessionId={item.id} />
                           <DropdownMenuItem
                             className="text-red-400 focus:bg-red-50 focus:text-red-500"
-                            onClick={() => handleDelte(item.id)}
+                            onClick={() => handleDelete(item.id)}
                           >
                             <Trash2 className="text-red-400" />
                             <span>Delete</span>
@@ -135,7 +129,7 @@ export function NavHistory({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-500 hover:bg-red-600"
-              onClick={() => onSessionDelete(id)}
+              onClick={() => (id ? onTaskDelete(id) : undefined)}
             >
               Delete
             </AlertDialogAction>

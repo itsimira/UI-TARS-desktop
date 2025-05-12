@@ -20,7 +20,7 @@ export default function Header({ className }: { className?: string }) {
         <HStack userSelect="none">
           <Image
             userSelect="none"
-            alt="UI-TARS Logo"
+            alt="Pretendic Logo"
             src={logoVector}
             h="40px"
             draggable={false}

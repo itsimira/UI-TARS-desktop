@@ -1,8 +1,4 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { IMAGE_PLACEHOLDER } from '@ui-tars/shared/constants';
 import { StatusEnum } from '@ui-tars/shared/types';
@@ -17,15 +13,13 @@ import {
   TooltipTrigger,
 } from '@renderer/components/ui/tooltip';
 import { Button } from '@renderer/components/ui/button';
-// import { useScreenRecord } from '@renderer/hooks/useScreenRecord';
 import { api } from '@renderer/api';
 
 import { Play, Send, Square, Loader2 } from 'lucide-react';
 import { Textarea } from '@renderer/components/ui/textarea';
-import { useSession } from '@renderer/hooks/useSession';
 
-import { SelectOperator } from './SelectOperator';
 import { sleep } from '@ui-tars/shared/utils';
+import { useTask } from '@renderer/hooks/useTask';
 
 const ChatInput = () => {
   const {
@@ -41,34 +35,25 @@ const ChatInput = () => {
     if (localInstructions?.trim()) {
       return localInstructions;
     }
-    if (isCallUser && savedInstructions?.trim()) {
+    if (savedInstructions?.trim()) {
       return savedInstructions;
     }
     return '';
   };
 
-  // const { startRecording, stopRecording, recordRefs } = useScreenRecord();
-
-  const { currentSessionId, updateSession, createSession } = useSession();
+  const { createTask, currentTask } = useTask();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const running = status === StatusEnum.RUNNING;
 
-  // console.log('running', 'status', status, running);
-
   const startRun = async () => {
-    // startRecording().catch((e) => {
-    //   console.error('start recording failed:', e);
-    // });
     const instructions = getInstantInstructions();
 
     console.log('startRun', instructions, restUserData);
 
-    if (!currentSessionId) {
-      await createSession(instructions, restUserData || {});
+    if (!currentTask) {
+      await createTask(instructions);
       await sleep(100);
-    } else {
-      await updateSession(currentSessionId, { name: instructions });
     }
 
     run(instructions, () => {
@@ -106,27 +91,6 @@ const ChatInput = () => {
     }
   }, [status]);
 
-  const isCallUser = useMemo(() => status === StatusEnum.CALL_USER, [status]);
-
-  // console.log('status', status);
-
-  /**
-   * `call_user` for human-in-the-loop
-   */
-  // useEffect(() => {
-  //   // if (status === StatusEnum.CALL_USER && savedInstructions) {
-  //   //   setLocalInstructions(savedInstructions);
-  //   // }
-  //   // record screen when running
-  //   if (status !== StatusEnum.INIT) {
-  //     stopRecording();
-  //   }
-
-  //   return () => {
-  //     stopRecording();
-  //   };
-  // }, [status]);
-
   const lastHumanMessage =
     [...(messages || [])]
       .reverse()
@@ -152,7 +116,7 @@ const ChatInput = () => {
       );
     }
 
-    if (isCallUser && !localInstructions) {
+    if (!localInstructions) {
       return (
         <TooltipProvider>
           <Tooltip>
@@ -198,13 +162,13 @@ const ChatInput = () => {
           <Textarea
             ref={textareaRef}
             placeholder={
-              isCallUser && savedInstructions
+              savedInstructions
                 ? `${savedInstructions}`
                 : running && lastHumanMessage && messages?.length > 1
                   ? lastHumanMessage
                   : 'What can I do for you today?'
             }
-            className="min-h-[120px] rounded-2xl resize-none px-4 pb-16" // 调整内边距
+            className="min-h-[120px] rounded-md resize-none px-4 pb-16 focus-visible:ring-0 shadow-none"
             value={localInstructions}
             disabled={running}
             onChange={(e) => setLocalInstructions(e.target.value)}
@@ -215,7 +179,6 @@ const ChatInput = () => {
               `Enter` to run
             </span>
           )}
-          <SelectOperator />
           <div className="absolute right-4 bottom-4 flex items-center gap-2">
             {running && (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -224,11 +187,6 @@ const ChatInput = () => {
           </div>
         </div>
       </div>
-
-      {/* <div style={{ display: 'none' }}>
-        <video ref={recordRefs.videoRef} />
-        <canvas ref={recordRefs.canvasRef} />
-      </div> */}
     </div>
   );
 };

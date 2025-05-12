@@ -1,12 +1,8 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { initIpc } from '@ui-tars/electron-ipc/main';
 import { StatusEnum, Conversation } from '@ui-tars/shared/types';
 import { store } from '@main/store/create';
 import { runAgent } from '@main/services/runAgent';
-import { showWindow } from '@main/window/index';
+import { showWindow } from '@main/window';
 
 import { closeScreenMarker } from '@main/window/ScreenMarker';
 import { GUIAgent } from '@ui-tars/sdk';

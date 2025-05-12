@@ -31,7 +31,6 @@ export class ChatManager {
     return messages;
   }
 
-  // 获取会话的所有消息
   async getSessionMessages(sessionId: string) {
     return get<ConversationWithSoM[]>(sessionId, chatStore);
   }

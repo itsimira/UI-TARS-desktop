@@ -9,7 +9,6 @@ import { useEffect } from 'react';
 export const useSession = () => {
   const store = useSessionStore();
 
-  // 初始加载
   useEffect(() => {
     store.fetchSessions();
   }, []);

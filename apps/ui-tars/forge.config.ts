@@ -152,7 +152,7 @@ console.log('ignorePattern', ignorePattern);
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'UI TARS',
+    name: 'Pretendic',
     icon: 'resources/icon',
     extraResource: ['./resources/app-update.yml'],
     asar: {
@@ -166,7 +166,7 @@ const config: ForgeConfig = {
         ? noopAfterCopy
         : setLanguages([...keepLanguages.values()]),
     ],
-    executableName: 'UI-TARS',
+    executableName: 'Pretendic',
     ...(enableOsxSign
       ? {
           osxSign: {
@@ -188,7 +188,7 @@ const config: ForgeConfig = {
     {
       name: '@electron-forge/publisher-github',
       config: {
-        repository: { owner: 'bytedance', name: 'ui-tars-desktop' },
+        repository: { owner: 'awesomic', name: 'pretendic' },
         draft: true,
         force: true,
         generateReleaseNotes: true,
@@ -197,7 +197,7 @@ const config: ForgeConfig = {
   ],
   makers: [
     new MakerZIP({}, ['darwin']),
-    new MakerSquirrel({ name: 'UI-TARS', setupIcon: 'resources/icon.ico' }),
+    new MakerSquirrel({ name: 'Pretendic', setupIcon: 'resources/icon.ico' }),
     // https://github.com/electron/forge/issues/3712
     new MakerDMG({
       overwrite: true,

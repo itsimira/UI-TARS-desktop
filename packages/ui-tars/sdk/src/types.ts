@@ -75,10 +75,8 @@ export interface RetryConfig {
 }
 
 export interface GUIAgentConfig<TOperator> {
+  executablePath: string;
   operator: TOperator;
-  model:
-    | InstanceType<typeof UITarsModel>
-    | ConstructorParameters<typeof UITarsModel>[0];
 
   // ===== Optional =====
   systemPrompt?: string;
@@ -86,22 +84,8 @@ export interface GUIAgentConfig<TOperator> {
   onData?: (params: { data: GUIAgentData }) => void;
   onError?: (params: { data: GUIAgentData; error: GUIAgentError }) => void;
   logger?: Logger;
-  retry?: {
-    model?: RetryConfig;
-    /** TODO: whether need to provider retry config in SDK?, should be provided with operator? */
-    screenshot?: RetryConfig;
-    execute?: RetryConfig;
-  };
-  /** Maximum number of turns for Agent to execute, @default 25 */
-  maxLoopCount?: number;
-  /** Time interval between two loop iterations (in milliseconds), @default 0 */
-  loopIntervalInMs?: number;
-  uiTarsVersion?: UITarsModelVersion;
 }
 
 export interface AgentContext<T = Operator> extends GUIAgentConfig<T> {
   logger: NonNullable<GUIAgentConfig<T>['logger']>;
-  /** [widthFactor, heightFactor] */
-  factors: [number, number];
-  model: InstanceType<typeof UITarsModel>;
 }
