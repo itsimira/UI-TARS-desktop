@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { tasksService } from '@main/services/api/api.factory';
-import { Task } from '@ui-tars/shared/types';
+import { Message, Task } from '@ui-tars/shared/types';
 
 export function registerTaskIPC() {
   ipcMain.handle('task:list', async () => {
@@ -15,9 +15,17 @@ export function registerTaskIPC() {
     return tasksService.delete(taskId);
   });
 
-  ipcMain.handle('task:update', async (_, task: Task) => {
-    return tasksService.update(task);
-  });
+  ipcMain.handle(
+    'task:update',
+    async (
+      _,
+      task: Task,
+      responses: Message[],
+      store: Record<string, string | object> = {},
+    ) => {
+      return tasksService.update(task, responses, store);
+    },
+  );
 
   ipcMain.handle('task:responses', async (_, taskId: number) => {
     return tasksService.getTaskResponses(taskId);

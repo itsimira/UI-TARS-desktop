@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { BrowserWindow, Menu, MenuItemConstructorOptions, app } from 'electron';
 
 import { isDev } from '@main/env';
@@ -25,7 +21,6 @@ export default class MenuBuilder {
 
   buildMenu(): Menu {
     if (isDev) {
-      // FIXME: 开发环境不显示 devtools
       this.setupDevelopmentEnvironment();
     }
 
@@ -57,17 +52,17 @@ export default class MenuBuilder {
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
-      label: 'UI-TARS Desktop',
+      label: 'Pretendic',
       submenu: [
         {
-          label: 'About UI-TARS Desktop',
+          label: 'About Pretendic',
           selector: 'orderFrontStandardAboutPanel:',
         },
         { type: 'separator' },
         { label: 'Services', submenu: [] },
         { type: 'separator' },
         {
-          label: 'Hide UI-TARS Desktop',
+          label: 'Hide Pretendic',
           accelerator: 'Command+H',
           selector: 'hide:',
         },

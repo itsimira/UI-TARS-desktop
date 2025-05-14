@@ -43,6 +43,7 @@ export interface GUIAgentData {
   errMsg?: string;
   error?: GUIAgentError;
   conversations: Conversation[];
+  store: Record<string, string | object>;
 }
 
 export interface PyExecutableOutput {

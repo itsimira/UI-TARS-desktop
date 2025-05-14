@@ -1,8 +1,4 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { cn } from '@renderer/utils';
 
 import Prompts from '../Prompts';
@@ -10,9 +6,9 @@ import { api } from '@renderer/api';
 
 import ChatInput from '@renderer/components/ChatInput';
 
-import { ClearHistory } from '@/renderer/src/components/RunMessages/ClearHistory';
+import { DeleteTaskButton } from '@renderer/components/RunMessages/DeleteTaskButton';
 import { useStore } from '@renderer/hooks/useStore';
-import { useSession } from '@renderer/hooks/useSession';
+import { Message, StatusEnum } from '@ui-tars/shared/types';
 
 import {
   ErrorMessage,
@@ -22,34 +18,65 @@ import {
 } from './Messages';
 import { WelcomePage } from './Welcome';
 import { useTask } from '@renderer/hooks/useTask';
+import { AgentStore } from '@renderer/components/AgentStore';
+import { ExportTaskDataButton } from '@renderer/components/RunMessages/ExportTaskDataButton';
+
+const suggestions: string[] = [];
 
 const RunMessages = () => {
-  const { messages = [], thinking, errorMsg } = useStore();
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const suggestions: string[] = [];
-  const { currentSessionId, chatMessages, updateMessages } = useSession();
-  const { currentTask, responses, loading } = useTask();
+  const { messages = [], thinking, errorMsg, status, store } = useStore();
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const { currentTask, responses, loading, updateTask } = useTask();
   const isWelcome = currentTask === null;
+
+  const hasStore = useCallback(() => {
+    return (
+      currentTask?.status === 'done' &&
+      Object.entries(currentTask?.taskStore ?? {}).length
+    );
+  }, [currentTask?.status, currentTask?.taskStore]);
+
+  useEffect(() => {
+    if (currentTask) {
+      console.log('update responses');
+
+      setLocalMessages(
+        currentTask.status === 'done'
+          ? responses.map((message) => ({
+              value: message.response,
+              from: 'gpt',
+            }))
+          : [],
+      );
+    }
+    return () => {
+      setLocalMessages([]);
+    };
+  }, [currentTask?.id, responses.length, setLocalMessages]);
 
   useEffect(() => {
     if (currentTask && messages.length) {
       const existingMessagesSet = new Set(
-        chatMessages.map(
-          (msg) => `${msg.value}-${msg.from}-${msg.timing?.start}`,
-        ),
+        localMessages.map((msg) => `${msg.value}-${msg.from}`),
       );
-      const newMessages = messages.filter(
-        (msg) =>
-          !existingMessagesSet.has(
-            `${msg.value}-${msg.from}-${msg.timing?.start}`,
-          ),
-      );
-      const allMessages = [...chatMessages, ...newMessages];
 
-      updateMessages(currentSessionId, allMessages);
+      const newMessages = messages.filter(
+        (msg) => !existingMessagesSet.has(`${msg.value}-${msg.from}`),
+      );
+
+      setLocalMessages((prevMessages) => [...prevMessages, ...newMessages]);
     }
-  }, [currentSessionId, chatMessages.length, messages.length]);
+  }, [currentTask, messages.length, setLocalMessages]);
+
+  useEffect(() => {
+    if (currentTask && status === StatusEnum.END) {
+      const task = { ...currentTask, status: 'done', taskStore: store };
+      updateTask(task);
+      window.api.task.update(task, localMessages, store ?? {});
+    }
+  }, [status]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -77,11 +104,11 @@ const RunMessages = () => {
           {loading ? (
             <LoadingText text={'Loading...'} />
           ) : (
-            responses?.map((message, idx) => {
+            localMessages?.map((message, idx) => {
               return (
                 <AssistantTextMessage
                   key={`message-${idx}`}
-                  text={message?.response}
+                  text={message?.value}
                 />
               );
             })
@@ -95,20 +122,38 @@ const RunMessages = () => {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex h-full justify-center">
-      {/* Left Panel */}
+    <div
+      className={cn(
+        'flex-1 min-h-0 flex h-full',
+        hasStore() ? 'justify-start' : 'justify-center',
+      )}
+    >
       <div
         className={cn(
-          'flex flex-col transition-all duration-300 ease-in-out w-3/4',
+          'flex flex-col transition-all duration-300 ease-in-out',
+          hasStore() ? 'w-2/3' : 'w-3/4',
         )}
       >
-        <div className="flex w-full items-center mb-1">
-          <div className="ml-2 mr-auto" />
-          <ClearHistory />
-        </div>
+        {currentTask && (
+          <div className="flex w-full items-center justify-between py-2 px-4 mb-1">
+            <div className="ml-2 mr-auto">
+              <h1 className="text-lg font-semibold text-gray-900">Chat</h1>
+            </div>
+            <div className="flex gap-2">
+              <ExportTaskDataButton />
+              <DeleteTaskButton />
+            </div>
+          </div>
+        )}
         {isWelcome ? <WelcomePage /> : renderChatList()}
-        <ChatInput />
+        {currentTask?.status !== 'done' ? <ChatInput /> : ''}
       </div>
+
+      {hasStore() ? (
+        <AgentStore taskStore={currentTask?.taskStore ?? {}} />
+      ) : (
+        ''
+      )}
     </div>
   );
 };

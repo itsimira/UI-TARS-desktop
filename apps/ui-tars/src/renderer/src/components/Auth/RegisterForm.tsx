@@ -11,6 +11,9 @@ import {
   FormItem,
   FormMessage,
 } from '@renderer/components/ui/form';
+import { useUserStore } from '@renderer/store/user';
+import { SignUpResponse } from '@ui-tars/shared/types';
+import { useNavigate } from 'react-router';
 
 interface RegisterFormProps {
   toLogin: () => void;
@@ -18,7 +21,6 @@ interface RegisterFormProps {
 
 const signupSchema = z
   .object({
-    name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
     email: z.string().email({ message: 'Please enter a valid email address' }),
     password: z
       .string()
@@ -35,11 +37,12 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 export const RegisterForm: FunctionComponent<RegisterFormProps> = ({
   toLogin,
 }) => {
-  const { setAuthenticated } = useAuthStore();
+  const { setUser, setToken } = useUserStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const form = useForm<SignupFormValues>({
+    // @ts-ignore
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: '',
@@ -50,18 +53,19 @@ export const RegisterForm: FunctionComponent<RegisterFormProps> = ({
 
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
-    setError(null);
 
     try {
-      const userData = await window.electron.ipcRenderer.invoke('auth:signup', {
+      const userData: SignUpResponse = await window.api.auth.signup({
         email: data.email,
         password: data.password,
       });
 
-      // Notify main process of successful login after signup
-      await window.electron.ipcRenderer.invoke('login:success', userData);
-    } catch (err: { message: string }) {
-      setError(err.message || 'Failed to create account. Please try again.');
+      setUser(userData.user);
+      setToken(userData.token);
+
+      navigate('/');
+    } catch (err) {
+      console.error('Signup failed', err);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +74,11 @@ export const RegisterForm: FunctionComponent<RegisterFormProps> = ({
   return (
     <div className="mt-8 space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          id="signup"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -142,7 +150,9 @@ export const RegisterForm: FunctionComponent<RegisterFormProps> = ({
       <div className="flex flex-col items-center space-y-4 pt-2"></div>
 
       <div className="mt-8 flex justify-end space-x-4">
-        <Button>{isLoading ? 'Creating Account...' : 'Create Account'}</Button>
+        <Button form="signup" type="submit">
+          {isLoading ? 'Creating Account...' : 'Create Account'}
+        </Button>
       </div>
     </div>
   );

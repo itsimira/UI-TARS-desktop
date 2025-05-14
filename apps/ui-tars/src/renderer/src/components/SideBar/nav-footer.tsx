@@ -2,6 +2,7 @@ import { User, LogOut } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
 import { useUserStore } from '@renderer/store/user';
 import { useNavigate } from 'react-router';
+import { resetAllStores } from '@renderer/store/storeRegistry';
 
 export function NavSettings() {
   const { user, logout } = useUserStore();
@@ -9,6 +10,7 @@ export function NavSettings() {
 
   const handleLogout = () => {
     logout().then(() => {
+      resetAllStores();
       navigate('/login');
     });
   };

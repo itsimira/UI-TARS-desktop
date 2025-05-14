@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { useCallback, type ComponentProps } from 'react';
 import { Plus } from 'lucide-react';
 
@@ -13,8 +9,6 @@ import {
 } from '@renderer/components/ui/sidebar';
 import { DragArea } from '@renderer/components/Common/drag';
 import { Button } from '@renderer/components/ui/button';
-
-// import { NavMain } from './nav-main';
 import { NavHistory } from './nav-history';
 import { UITarsHeader } from './nav-header';
 import { NavSettings } from '@renderer/components/SideBar/nav-footer';
@@ -22,16 +16,10 @@ import { useTask } from '@renderer/hooks/useTask';
 import { Task } from '@ui-tars/shared/types';
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-  const { currentTask, tasks, setCurrentTask } = useTask();
+  const { currentTask, tasks, setCurrentTask, deleteTask } = useTask();
 
   const onNewChat = useCallback(async () => {
     setCurrentTask(null);
-  }, []);
-
-  const onTaskDelete = useCallback(async (taskId: number) => {
-    window.api.task.remove(taskId).then(() => {
-      setCurrentTask(null);
-    });
   }, []);
 
   const onTaskClick = useCallback(async (task: Task) => {
@@ -59,7 +47,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           currentTask={currentTask}
           history={tasks}
           onTaskClick={onTaskClick}
-          onTaskDelete={onTaskDelete}
+          onTaskDelete={deleteTask}
         />
       </SidebarContent>
 

@@ -12,7 +12,7 @@ export const useTask = () => {
     if (store.currentTask) {
       store.fetchTaskResponses(store.currentTask.id);
     }
-  }, [store.currentTask, store.fetchTaskResponses]);
+  }, [store.currentTask?.id, store.fetchTaskResponses]);
 
   return {
     loading: store.loading,
@@ -27,5 +27,7 @@ export const useTask = () => {
     setCurrentTask: store.setCurrentTask,
 
     createTask: store.create,
+    updateTask: store.update,
+    deleteTask: store.delete,
   };
 };

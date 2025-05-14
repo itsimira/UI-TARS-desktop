@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- *
- * Portions Copyright 2024-present zutron. All rights reserved.
- * Use of this source code is governed by a MIT license that can be
- * found in https://github.com/goosewobbler/zutron
- */
 import { useStore as useZustandStore, type StoreApi } from 'zustand';
 import { createStore as createZustandStore } from 'zustand/vanilla';
 import type { AppState } from '@main/store/types';
@@ -48,7 +40,6 @@ type UseBoundStore<S extends ReadonlyStoreApi<unknown>> = {
 const createUseStore = <S extends AppState>(
   bridge: Handlers<S>,
 ): UseBoundStore<StoreApi<S>> => {
-  console.log('bridge', bridge);
   const vanillaStore = createStore<S>(bridge);
   const useBoundStore = (selector: (state: S) => unknown) =>
     useZustandStore(vanillaStore, selector);
@@ -61,3 +52,4 @@ const createUseStore = <S extends AppState>(
 
 export const useStore = createUseStore<AppState>(window.zustandBridge);
 export const getState = useStore.getState;
+export const setState = useStore.setState;

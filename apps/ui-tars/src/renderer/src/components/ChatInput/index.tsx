@@ -6,16 +6,10 @@ import { StatusEnum } from '@ui-tars/shared/types';
 import { useRunAgent } from '@renderer/hooks/useRunAgent';
 import { useStore } from '@renderer/hooks/useStore';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@renderer/components/ui/tooltip';
 import { Button } from '@renderer/components/ui/button';
 import { api } from '@renderer/api';
 
-import { Play, Send, Square, Loader2 } from 'lucide-react';
+import { Play, Square, Loader2 } from 'lucide-react';
 import { Textarea } from '@renderer/components/ui/textarea';
 
 import { sleep } from '@ui-tars/shared/utils';
@@ -116,41 +110,15 @@ const ChatInput = () => {
       );
     }
 
-    if (!localInstructions) {
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8 bg-pink-100 hover:bg-pink-200 text-pink-500 border-pink-200"
-                onClick={startRun}
-                disabled={!getInstantInstructions()}
-              >
-                <Play className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="whitespace-pre-line">
-                send last instructions when you done for ui-tars&apos;s
-                &apos;CALL_USER&apos;
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    }
-
     return (
       <Button
         variant="secondary"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 bg-blue-100 hover:bg-blue-200 text-blue-500 border-blue-200"
         onClick={startRun}
         disabled={!getInstantInstructions()}
       >
-        <Send className="h-4 w-4" />
+        <Play className="h-4 w-4" />
       </Button>
     );
   };

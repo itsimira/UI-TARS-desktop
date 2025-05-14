@@ -1,10 +1,6 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 export interface Message {
   from: 'gpt' | 'human';
-  value: string; // <image>
+  value: string;
 }
 
 export enum ErrorStatusEnum {
@@ -50,13 +46,6 @@ export enum StatusEnum {
   MAX_LOOP = 'max_loop',
   USER_STOPPED = 'user_stopped',
   ERROR = 'error',
-}
-export interface VlmResponse {
-  generate_resp: {
-    input: string;
-    prediction: string;
-    uid: string;
-  }[];
 }
 
 export interface ScreenshotResult {

@@ -17,6 +17,8 @@ interface TaskState {
   fetchTaskResponses: (taskId: number) => Promise<void>;
 
   create: (prompt: string) => Promise<Task>;
+  update: (task: Task) => Promise<void>;
+  delete: (taskId: number) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskState>((set) => ({
@@ -55,5 +57,20 @@ export const useTaskStore = create<TaskState>((set) => ({
       }));
       return task;
     });
+  },
+
+  update: async (task: Task) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === task.id ? task : t)),
+      currentTask: task,
+    }));
+  },
+
+  delete: async (taskId: number) => {
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== taskId),
+      currentTask: null,
+    }));
+    return window.api.task.remove(taskId);
   },
 }));

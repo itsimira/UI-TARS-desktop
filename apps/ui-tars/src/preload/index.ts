@@ -7,7 +7,7 @@ import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
 
 import type { AppState, LocalStore } from '@main/store/types';
 import { LoginData, SignUpData } from '@main/services/api/dto';
-import { Task } from '@ui-tars/shared/types';
+import { Message, Task } from '@ui-tars/shared/types';
 
 export type Channels = 'auth:changed';
 
@@ -64,7 +64,11 @@ const apiHandler = {
     list: () => ipcRenderer.invoke('task:list'),
     add: (prompt: string) => ipcRenderer.invoke('task:add', prompt),
     remove: (taskId: number) => ipcRenderer.invoke('task:remove', taskId),
-    update: (task: Task) => ipcRenderer.invoke('task:update', task),
+    update: (
+      task: Task,
+      responses: Message[],
+      store?: Record<string, string | object>,
+    ) => ipcRenderer.invoke('task:update', task, responses, store),
     getResponses: (taskId: number) =>
       ipcRenderer.invoke('task:responses', taskId),
   },

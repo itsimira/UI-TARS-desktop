@@ -119,10 +119,10 @@ export function NavHistory({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Session</AlertDialogTitle>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this session item? This action
-              cannot be undone.
+              Are you sure you want to delete this task? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

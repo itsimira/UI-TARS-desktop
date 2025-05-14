@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { createStore } from 'zustand/vanilla';
 
 import { StatusEnum } from '@ui-tars/shared/types';
@@ -21,5 +17,6 @@ export const store = createStore<AppState>(
       abortController: null,
       thinking: false,
       browserAvailable: false, // Defaults to false until the detection is complete
+      store: {},
     }) satisfies AppState,
 );

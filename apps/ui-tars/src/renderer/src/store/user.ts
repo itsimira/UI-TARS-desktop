@@ -27,8 +27,6 @@ export const useUserStore = create<UserState>((set) => ({
   setError: (error) => set({ error }),
 
   logout: async () => {
-    return window.api.auth.logout().then(() => {
-      set({ user: null, token: null });
-    });
+    return window.api.auth.logout();
   },
 }));

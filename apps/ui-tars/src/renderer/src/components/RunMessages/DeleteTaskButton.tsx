@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { Button } from '@renderer/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import {
@@ -16,18 +12,18 @@ import {
   AlertDialogTrigger,
 } from '@renderer/components/ui/alert-dialog';
 import { useState } from 'react';
-import { useSession } from '@renderer/hooks/useSession';
+import { useTask } from '@renderer/hooks/useTask';
 
-export const ClearHistory = () => {
+export const DeleteTaskButton = () => {
   const [open, setOpen] = useState(false);
-  const { currentSessionId, deleteMessages } = useSession();
+  const { currentTask, deleteTask } = useTask();
 
-  if (!currentSessionId) {
+  if (!currentTask) {
     return null;
   }
 
-  const handleClearMessages = async () => {
-    await deleteMessages(currentSessionId);
+  const handleDelete = async () => {
+    await deleteTask(currentTask?.id);
     setOpen(false);
   };
 
@@ -37,7 +33,7 @@ export const ClearHistory = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="mr-1 text-red-400 hover:bg-red-50 hover:text-red-500"
+          className="mr-1 text-red-400 bg-red-50 hover:bg-red-100 hover:text-red-500"
           aria-label="Clear Messages"
         >
           <Trash2 className="h-4 w-4" />
@@ -45,18 +41,18 @@ export const ClearHistory = () => {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Clear Chat History</AlertDialogTitle>
+          <AlertDialogTitle>Delete Task</AlertDialogTitle>
           <AlertDialogDescription>
-            This will clear all chat messages. This action cannot be undone.
+            This will delete this task. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleClearMessages}
+            onClick={handleDelete}
             className=" bg-red-500 hover:bg-red-600"
           >
-            Clear
+            Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

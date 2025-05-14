@@ -5,6 +5,8 @@ export interface Task {
   prompt: string;
   status: string;
   created_at: Date;
+
+  taskStore?: Record<string, string | object>;
 }
 
 export interface TaskResponse {

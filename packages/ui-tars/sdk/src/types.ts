@@ -77,11 +77,11 @@ export interface RetryConfig {
 export interface GUIAgentConfig<TOperator> {
   executablePath: string;
   operator: TOperator;
+  onData: (params: { data: GUIAgentData }) => void;
 
   // ===== Optional =====
   systemPrompt?: string;
   signal?: AbortSignal;
-  onData?: (params: { data: GUIAgentData }) => void;
   onError?: (params: { data: GUIAgentData; error: GUIAgentError }) => void;
   logger?: Logger;
 }

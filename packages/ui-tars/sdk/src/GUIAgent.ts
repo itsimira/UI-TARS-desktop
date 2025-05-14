@@ -22,7 +22,6 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
   GUIAgentConfig<T>
 > {
   private readonly executablePath: string;
-  private readonly operator: T;
   private readonly logger: NonNullable<GUIAgentConfig<T>['logger']>;
   private execProcess: any;
 
@@ -34,7 +33,6 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
   constructor(config: GUIAgentConfig<T>) {
     super(config);
     this.executablePath = config.executablePath;
-    this.operator = config.operator;
     this.logger = config.logger || console;
   }
 
@@ -59,6 +57,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
           },
         },
       ],
+      store: {},
     };
 
     // inject guiAgent config for operator to get
@@ -68,7 +67,6 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
       }),
     );
 
-    // start running agent
     data.status = StatusEnum.RUNNING;
     onData?.({ data: { ...data, conversations: [] } });
 
@@ -152,6 +150,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
               status: StatusEnum.ERROR,
               logTime: currentTime,
               conversations: [],
+              store: {},
             },
           });
         }
@@ -169,6 +168,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
               instruction,
               logTime: currentTime,
               conversations: [],
+              store: {},
             },
             error: {
               status: ErrorStatusEnum.EXECUTE_RETRY_ERROR,
@@ -190,6 +190,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
               instruction,
               logTime: currentTime,
               conversations: [],
+              store: {},
             },
           });
         });
@@ -209,14 +210,15 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
       return;
     }
 
+    console.log('json output', output);
+
     switch (output.type) {
       case 'finished':
-        // Handle task finished
-        if (onData && output.message) {
+        if (output.message) {
           onData({
             data: {
-              status: StatusEnum.END,
-              instruction: output.message,
+              status: StatusEnum.RUNNING,
+              instruction: data.instruction,
               conversations: [
                 {
                   from: 'gpt',
@@ -229,18 +231,18 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
                 },
               ],
               logTime: currentTime,
+              store: output.store_variables?.store ?? {},
             },
           });
         }
         break;
 
       case 'subtask_done':
-        // Handle subtask completion
-        if (onData && output.message) {
+        if (output.message) {
           onData({
             data: {
               status: StatusEnum.RUNNING,
-              instruction: output.message,
+              instruction: data.instruction,
               logTime: currentTime,
               conversations: [
                 {
@@ -253,58 +255,57 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
                   },
                 },
               ],
+              store: output.store_variables?.store ?? {},
             },
           });
         }
         break;
 
       case 'done':
-        // Handle overall completion
-        if (onData) {
-          onData({
-            data: {
-              status: StatusEnum.END,
-              instruction: 'Task completed successfully',
-              logTime: currentTime,
-              conversations: [
-                {
-                  from: 'gpt',
-                  value: 'Task completed successfully',
-                  timing: {
-                    start: currentTime,
-                    end: Date.now(),
-                    cost: Date.now() - currentTime,
-                  },
+        onData({
+          data: {
+            status: StatusEnum.END,
+            instruction: data.instruction,
+            logTime: currentTime,
+            conversations: [
+              {
+                from: 'gpt',
+                value: 'Task completed successfully',
+                timing: {
+                  start: currentTime,
+                  end: Date.now(),
+                  cost: Date.now() - currentTime,
                 },
-              ],
-            },
-          });
-        }
+              },
+            ],
+            store: output.store_variables?.store ?? {},
+          },
+        });
+
         break;
 
       default:
         this.logger.info(`[PyExecutable] Handling output type: ${output.type}`);
-        // Pass through any other data types to onData
-        if (onData) {
-          onData({
-            data: {
-              status: StatusEnum.RUNNING,
-              logTime: currentTime,
-              instruction: output.message || 'Processing',
-              conversations: [
-                {
-                  from: 'gpt',
-                  value: output.message || 'Processing',
-                  timing: {
-                    start: currentTime,
-                    end: Date.now(),
-                    cost: Date.now() - currentTime,
-                  },
+
+        onData({
+          data: {
+            status: StatusEnum.RUNNING,
+            logTime: currentTime,
+            instruction: data.instruction,
+            conversations: [
+              {
+                from: 'gpt',
+                value: output.message || 'Processing',
+                timing: {
+                  start: currentTime,
+                  end: Date.now(),
+                  cost: Date.now() - currentTime,
                 },
-              ],
-            },
-          });
-        }
+              },
+            ],
+            store: output.store_variables?.store ?? {},
+          },
+        });
     }
   }
 
@@ -326,80 +327,5 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
 
   public stop() {
     this.isStopped = true;
-  }
-
-  private guiAgentErrorParser(
-    type: ErrorStatusEnum,
-    error?: Error,
-  ): GUIAgentError {
-    this.logger.error('[GUIAgent] guiAgentErrorParser:', error);
-
-    let parseError = null;
-
-    if (error instanceof InternalServerError) {
-      this.logger.error(
-        '[GUIAgent] guiAgentErrorParser instanceof InternalServerError.',
-      );
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.MODEL_SERVICE_ERROR,
-        error.message,
-        error.stack,
-      );
-    }
-
-    if (!parseError && type === ErrorStatusEnum.REACH_MAXLOOP_ERROR) {
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.REACH_MAXLOOP_ERROR,
-        `Has reached max loop count: ${error?.message || ''}`,
-        error?.stack,
-      );
-    }
-
-    if (!parseError && type === ErrorStatusEnum.SCREENSHOT_RETRY_ERROR) {
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.SCREENSHOT_RETRY_ERROR,
-        `Too many screenshot failures: ${error?.message || ''}`,
-        error?.stack,
-      );
-    }
-
-    if (!parseError && type === ErrorStatusEnum.INVOKE_RETRY_ERROR) {
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.INVOKE_RETRY_ERROR,
-        `Too many model invoke failures: ${error?.message || ''}`,
-        error?.stack,
-      );
-    }
-
-    if (!parseError && type === ErrorStatusEnum.EXECUTE_RETRY_ERROR) {
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.EXECUTE_RETRY_ERROR,
-        `Too many action execute failures: ${error?.message || ''}`,
-        error?.stack,
-      );
-    }
-
-    if (!parseError && type === ErrorStatusEnum.ENVIRONMENT_ERROR) {
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.ENVIRONMENT_ERROR,
-        `The environment error occurred when parsing the action: ${error?.message || ''}`,
-        error?.stack,
-      );
-    }
-
-    if (!parseError) {
-      parseError = new GUIAgentError(
-        ErrorStatusEnum.UNKNOWN_ERROR,
-        error instanceof Error ? error.message : 'Unknown error occurred',
-        error instanceof Error ? error.stack || 'null' : 'null',
-      );
-    }
-
-    if (!parseError.stack) {
-      // Avoid guiAgentErrorParser it self in stack trace
-      Error.captureStackTrace(parseError, this.guiAgentErrorParser);
-    }
-
-    return parseError;
   }
 }

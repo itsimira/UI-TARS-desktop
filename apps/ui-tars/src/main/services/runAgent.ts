@@ -4,7 +4,6 @@ import { logger } from '@main/logger';
 import { hideWindowBlock } from '@main/window';
 import { StatusEnum } from '@ui-tars/shared/types';
 import { GUIAgent, type GUIAgentConfig } from '@ui-tars/sdk';
-import { UTIOService } from '@main/services/utio';
 import { NutJSElectronOperator } from '../agent/operator';
 import {
   closeScreenMarker,
@@ -34,14 +33,15 @@ export const runAgent = async (
   const handleData: GUIAgentConfig<NutJSElectronOperator>['onData'] = async ({
     data,
   }) => {
-    const { status, conversations, ...restUserData } = data;
+    const { status, conversations, store, ...restUserData } = data;
     logger.info('[onGUIAgentData] status', status, conversations.length);
 
-    logger.info(conversations);
+    console.log(store, 'new store');
 
     setState({
       ...getState(),
       status,
+      store: Object.assign(getState().store, store),
       restUserData,
       messages: [...(getState().messages || []), ...conversations],
     });
@@ -72,10 +72,15 @@ export const runAgent = async (
   GUIAgentManager.getInstance().setAgent(guiAgent);
 
   await hideWindowBlock(async () => {
-    await UTIOService.getInstance().sendInstruction(instructions);
-
     await guiAgent
       .run(instructions)
+      .then(() => {
+        setState({
+          ...getState(),
+          status: StatusEnum.INIT,
+          messages: [],
+        });
+      })
       .catch((e) => {
         logger.error('[runAgentLoop error]', e);
         setState({
@@ -86,10 +91,8 @@ export const runAgent = async (
       })
       .finally(() => {
         hideWidgetWindow();
-        if (settings.operator === 'nutjs') {
-          closeScreenMarker();
-          hideScreenWaterFlow();
-        }
+        closeScreenMarker();
+        hideScreenWaterFlow();
       });
   }).catch((e) => {
     logger.error('[runAgent error hideWindowBlock]', settings, e);

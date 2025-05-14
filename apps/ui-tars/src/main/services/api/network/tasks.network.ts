@@ -1,26 +1,17 @@
 import { ApiConfig } from '../types';
-import { Task, TaskResponse } from '@ui-tars/shared/types';
+import { Message, Task, TaskResponse } from '@ui-tars/shared/types';
 import { TokenService } from '@main/services/token.service';
+import { logger } from '@main/logger';
 
 export class TasksNetwork {
-  private accessToken: string | null = null;
-
-  constructor(private readonly config: ApiConfig) {
-    TokenService.loadToken().then((token: string | null) => {
-      if (!token) {
-        throw new Error('Token not found');
-      }
-
-      this.accessToken = token;
-    });
-  }
+  constructor(private readonly config: ApiConfig) {}
 
   async getList(): Promise<Task[]> {
     const response = await fetch(`${this.config.endpoint}/tasks`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${await TokenService.loadToken()}`,
       },
     });
 
@@ -28,7 +19,9 @@ export class TasksNetwork {
       throw new Error('Failed to fetch tasks');
     }
 
-    return (await response.json()) as Task[];
+    const result: Task[] = await response.json();
+
+    return result;
   }
 
   async get(id: number): Promise<Task> {
@@ -36,7 +29,7 @@ export class TasksNetwork {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${await TokenService.loadToken()}`,
       },
     });
 
@@ -52,7 +45,7 @@ export class TasksNetwork {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${await TokenService.loadToken()}`,
       },
       body: JSON.stringify({ prompt }),
     });
@@ -64,17 +57,23 @@ export class TasksNetwork {
     return response.json();
   }
 
-  async update(task: Task): Promise<Task> {
+  async update(
+    task: Task,
+    responses: Message[],
+    store: Record<string, string | object> = {},
+  ): Promise<Task> {
+    logger.info(`Task ${task.id} update`);
+
     const response = await fetch(`${this.config.endpoint}/tasks/${task.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${await TokenService.loadToken()}`,
       },
       body: JSON.stringify({
         status: task.status,
-        logs: task.logs,
-        store: task.storeVariables,
+        logs: responses.map((response) => ({ message: response.value })),
+        store: store,
       }),
     });
 
@@ -86,13 +85,17 @@ export class TasksNetwork {
   }
 
   async delete(id: number): Promise<void> {
+    logger.info(`Task ${id} delete`);
     const response = await fetch(`${this.config.endpoint}/tasks/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${await TokenService.loadToken()}`,
       },
+      body: JSON.stringify({}),
     });
+
+    logger.info(`Task delete status ${response.status} `);
 
     if (!response.ok) {
       throw new Error('Failed to delete task');
@@ -106,7 +109,7 @@ export class TasksNetwork {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${await TokenService.loadToken()}`,
         },
       },
     );

@@ -30,6 +30,7 @@ export const LoginForm: FunctionComponent<LoginFormProps> = ({ toSignup }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setUser, setToken } = useUserStore();
   const navigate = useNavigate();
+  const [error, setError] = useState<string | undefined>();
 
   const form = useForm<LoginFormValues>({
     // @ts-ignore
@@ -44,14 +45,14 @@ export const LoginForm: FunctionComponent<LoginFormProps> = ({ toSignup }) => {
     setIsLoading(true);
     try {
       const userData: LoginResponse = await window.api.auth.login(data);
-      console.log(userData);
+
       setUser(userData.user);
       setToken(userData.token);
 
       navigate('/');
     } catch (err) {
       console.error('Login failed', err);
-      // show an error message…
+      setError('Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +106,10 @@ export const LoginForm: FunctionComponent<LoginFormProps> = ({ toSignup }) => {
         </form>
       </Form>
 
+      <div className="flex flex-col items-center space-y-4 pt-2">
+        <span className="text-sm text-destructive">{error}</span>
+      </div>
+
       <div className="flex items-center justify-center">
         <span className="text-sm">
           {`Don't have an account?`}{' '}
@@ -113,8 +118,6 @@ export const LoginForm: FunctionComponent<LoginFormProps> = ({ toSignup }) => {
           </Button>
         </span>
       </div>
-
-      <div className="flex flex-col items-center space-y-4 pt-2"></div>
 
       <div className="mt-8 flex justify-end space-x-4">
         <Button form={'login'} disabled={isLoading}>

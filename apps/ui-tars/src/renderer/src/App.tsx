@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
 import { Route, HashRouter as Router, Routes } from 'react-router';
 import { lazy, Suspense } from 'react';
 import { Toaster } from 'sonner';
@@ -30,15 +26,18 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<Settings2 />} />
-            <Route path="/widget" element={<Widget />} />
             <Route path="/launcher" element={<Launcher />} />
           </Routes>
-          <Toaster
-            position="top-right"
-            offset={{ top: '48px' }}
-            mobileOffset={{ top: '48px' }}
-          />
         </AuthInitializer>
+
+        <Routes>
+          <Route path="/widget" element={<Widget />} />
+        </Routes>
+        <Toaster
+          position="top-right"
+          offset={{ top: '48px' }}
+          mobileOffset={{ top: '48px' }}
+        />
       </Suspense>
     </Router>
   );
